@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUARZ - Diagnóstico IA</title>
+    
+    <!-- 1. Importación de la Jerarquía Tipográfica de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&family=Sora:wght@300;600&family=Space+Grotesk:wght@700&family=Space+Mono:ital,wght@1,700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Protocolo de Diseño y Marca: QUARZ --- */
+        :root {
+            --bg-white: #fdfdfd;
+            --text-black: #111111;
+            --accent-gold: #c2be9f;
+            --error-red: #D93025;
+            
+            --font-title: 'Space Mono', monospace;
+            --font-accent: 'Space Grotesk', sans-serif;
+            --font-subtitle: 'Sora', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-white);
+            color: var(--text-black);
+            font-family: var(--font-body);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #contenedor-principal { position: relative; width: 100%; height: 100%; }
+
+        .pantalla {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            height: 100%; width: 100%; padding: 3rem; position: absolute;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out;
+            text-align: center; overflow-y: auto;
+        }
+
+        .pantalla.activa { opacity: 1; pointer-events: all; }
+
+        /* Jerarquía Tipográfica */
+        h1 {
+            font-family: var(--font-title); font-style: italic; font-weight: 700;
+            text-transform: uppercase; font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 1rem;
+        }
+
+        p.subtitulo {
+            font-family: var(--font-subtitle); font-weight: 300; font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            line-height: 1.6; max-width: 600px; margin-bottom: 3rem;
+        }
+
+        /* Contenedor Final (Formulario + QR) */
+        .final-container {
+            display: flex; align-items: flex-start; gap: 4rem;
+            width: 100%; max-width: 1100px; text-align: left;
+        }
+        
+        .form-container { flex: 2; }
+        .qr-container { flex: 1; padding-top: 1rem; text-align: center; }
+        
+        .qr-container h2 { font-family: var(--font-accent); text-transform: uppercase; font-size: 1.2rem; margin-bottom: 1rem; }
+        .qr-container p { font-size: 1rem; max-width: 280px; margin: 0 auto 1.5rem auto; line-height: 1.5; }
+        .qr-container img { width: 100%; max-width: 250px; border: 1px solid rgba(17,17,17,0.1); }
+
+        /* Componentes de Formulario y Botones */
+        .form-group { margin-bottom: 1.5rem; position: relative; }
+        
+        label {
+            font-family: var(--font-accent); text-transform: uppercase; font-size: 0.8rem;
+            letter-spacing: 0.5px; display: block; margin-bottom: 0.5rem;
+        }
+
+        input, textarea {
+            width: 100%; padding: 1rem; font-size: 1rem; font-family: var(--font-body);
+            background-color: #fff; border: 1px solid rgba(17, 17, 17, 0.1); border-radius: 0;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        input.has-error, textarea.has-error { border-color: var(--error-red); }
+
+        input:focus, textarea:focus {
+            outline: none; border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px rgba(194, 190, 159, 0.2);
+        }
+
+        .navigation-container { display: flex; gap: 1.5rem; justify-content: center; align-items: center; width: 100%;}
+        
+        .btn {
+            font-family: var(--font-accent); font-weight: 700; text-transform: uppercase;
+            font-size: 1rem; letter-spacing: 0.5px; background-color: rgba(253, 253, 253, 0.8);
+            color: var(--text-black); border: 1px solid rgba(17, 17, 17, 0.1);
+            padding: 1rem 3rem; border-radius: 0; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); transition: all 0.3s ease;
+        }
+        .btn:hover {
+            border-color: var(--accent-gold); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .btn.btn-secondary {
+            background-color: transparent;
+            box-shadow: none;
+            color: rgba(17,17,17,0.6);
+            border-color: transparent;
+        }
+        .btn.btn-secondary:hover {
+            background-color: transparent;
+            color: var(--text-black);
+            border-color: transparent;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .error-message {
+            color: var(--error-red); font-family: var(--font-body); font-size: 0.8rem;
+            margin-top: 0.5rem; display: none; text-align: left;
+        }
+        
+        #successMessage {
+            margin-top: 1.5rem; font-family: var(--font-subtitle); color: var(--text-black);
+            font-weight: 600; border-left: 2px solid var(--accent-gold); padding: 1rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .pantalla { padding: 1.5rem; }
+            .final-container { flex-direction: column; align-items: center; text-align: center; }
+            .form-container { width: 100%; order: 2; }
+            .qr-container { width: 100%; order: 1; margin-bottom: 2rem; }
+            .navigation-container { flex-direction: column-reverse; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="contenedor-principal">
+        <!-- Pantallas 1 a 3 (Sin cambios) -->
+        <section id="p1" class="pantalla activa">
+            <h1>FUTURO vs. FICCIÓN</h1>
+            <p class="subtitulo">¿Considera que los avances en Inteligencia Artificial han llegado para quedarse o son solo una moda pasajera?</p>
+            <div class="navigation-container">
+                <button class="btn" onclick="guardarRespuestaYContinuar('ia_opinion', 'Se queda', 'p2')">SE QUEDA</button>
+                <button class="btn" onclick="guardarRespuestaYContinuar('ia_opinion', 'Es una moda', 'p2')">ES UNA MODA</button>
+            </div>
+        </section>
+
+        <section id="p2" class="pantalla">
+            <h1>VENTAJA RADICAL</h1>
+            <p class="subtitulo">Si utiliza la IA en su día a día, ¿cómo y para qué la aprovecha?</p>
+            <textarea id="uso_diario_ia" rows="4" placeholder="Ej: Automatización de correos, análisis de datos, etc."></textarea>
+            <small id="errorP2" class="error-message" style="width: 100%; max-width: 500px;">Este campo es obligatorio. Por favor, escribe una respuesta.</small>
+            <div class="navigation-container" style="margin-top: 1.5rem;">
+                <button class="btn btn-secondary" onclick="mostrarPantalla('p1')">RETROCEDER</button>
+                <button class="btn" onclick="validarYContinuarP2()">CONTINUAR</button>
+            </div>
+        </section>
+
+        <section id="p3" class="pantalla">
+            <h1>ECOSISTEMA A MEDIDA</h1>
+            <p class="subtitulo">Si su empresa pudiera operar dentro de ese 1.5% de élite, ¿le interesaría saber cómo se logra a través de un diagnóstico?</p>
+            <div class="navigation-container">
+                 <button class="btn btn-secondary" onclick="mostrarPantalla('p2')">RETROCEDER</button>
+                 <button class="btn" onclick="irAPantallaFinal('Si, me interesa')">ME INTERESA</button>
+                 <button class="btn" onclick="irAPantallaFinal('No por ahora')">NO, GRACIAS</button>
+            </div>
+        </section>
+
+        <!-- Pantalla 4 (Con el nuevo campo de Teléfono) -->
+        <section id="p4" class="pantalla">
+            <div class="final-container">
+                <div class="form-container">
+                    <h1>SIGUIENTE PASO</h1>
+                    <p class="subtitulo" style="margin-bottom: 2rem;">Completa el registro. Iniciemos la conversación que definirá tu ventaja competitiva.</p>
+                    
+                    <form id="contactForm" novalidate>
+                        <div class="form-group">
+                            <label for="fullName">Nombre Completo</label>
+                            <input type="text" id="fullName" name="fullName" placeholder="Tu nombre y apellido" required>
+                            <small class="error-message">Este campo es obligatorio.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico</label>
+                            <input type="email" id="email" name="email" placeholder="nombre@empresa.com" required>
+                            <small class="error-message">Por favor, introduce un email válido.</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Número de Teléfono</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+51 987 654 321" required>
+                            <small class="error-message">Este campo es obligatorio.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Mensaje</label>
+                            <textarea id="message" name="message" rows="4" placeholder="Estoy interesado en..." required></textarea>
+                            <small class="error-message">Por favor, escribe un mensaje.</small>
+                        </div>
+                        <div class="navigation-container">
+                            <button type="button" class="btn btn-secondary" onclick="mostrarPantalla('p3')">RETROCEDER</button>
+                            <button type="submit" class="btn">ENVIAR MENSAJE</button>
+                        </div>
+                    </form>
+                    <p id="successMessage" style="display: none;"></p>
+                </div>
+                <div class="qr-container">
+                    <h2>GUARDA MI CONTACTO</h2>
+                    <p>Escanea el código para añadir mi vCard a tu agenda. Es el primer paso para una comunicación directa.</p>
+                    <img src="angel.png" alt="QR Code de contacto vCard">
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const respuestasEncuesta = {};
+
+        // URL y IDs de tu Google Form (AHORA COMPLETOS Y CORRECTOS)
+        const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeztdjl5xcUTU4dBXAeXBWH7gw9bPg2Vw7j8IX4XYzqktM7xQ/formResponse';
+        const GOOGLE_FORM_IDS = {
+            nombreCompleto: 'entry.49567438',
+            email: 'entry.385566520',
+            telefono: 'entry.679675975', // <-- ID CORRECTO
+            mensaje: 'entry.1910640002',
+            opinionIA: 'entry.964758336',
+            usoDiarioIA: 'entry.208348707',
+            interesDiagnostico: 'entry.898863389'
+        };
+
+        function mostrarPantalla(idPantalla) {
+            document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+            document.getElementById(idPantalla).classList.add('activa');
+        }
+
+        function guardarRespuestaYContinuar(pregunta, respuesta, siguientePantallaId) {
+            respuestasEncuesta[pregunta] = respuesta;
+            mostrarPantalla(siguientePantallaId);
+        }
+        
+        function validarYContinuarP2() {
+            const textarea = document.getElementById('uso_diario_ia');
+            const errorElement = document.getElementById('errorP2');
+            
+            if (textarea.value.trim() === '') {
+                textarea.classList.add('has-error');
+                errorElement.style.display = 'block';
+            } else {
+                textarea.classList.remove('has-error');
+                errorElement.style.display = 'none';
+                guardarRespuestaYContinuar('ia_uso', textarea.value.trim(), 'p3');
+            }
+        }
+
+        function irAPantallaFinal(respuesta) {
+            respuestasEncuesta['interes_1.5'] = respuesta;
+            console.log("Diagnóstico Finalizado:", respuestasEncuesta);
+            mostrarPantalla('p4');
+        }
+
+        // --- LÓGICA DE ENVÍO A GOOGLE FORMS ---
+        const form = document.getElementById('contactForm');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const successMessage = document.getElementById('successMessage');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateForm()) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'ENVIANDO...';
+
+                const formData = new FormData();
+                formData.append(GOOGLE_FORM_IDS.nombreCompleto, document.getElementById('fullName').value);
+                formData.append(GOOGLE_FORM_IDS.email, document.getElementById('email').value);
+                formData.append(GOOGLE_FORM_IDS.telefono, document.getElementById('phone').value);
+                formData.append(GOOGLE_FORM_IDS.mensaje, document.getElementById('message').value);
+                formData.append(GOOGLE_FORM_IDS.opinionIA, respuestasEncuesta.ia_opinion || 'N/A');
+                formData.append(GOOGLE_FORM_IDS.usoDiarioIA, respuestasEncuesta.ia_uso || 'N/A');
+                formData.append(GOOGLE_FORM_IDS.interesDiagnostico, respuestasEncuesta['interes_1.5'] || 'N/A');
+                
+                fetch(GOOGLE_FORM_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                })
+                .then(() => {
+                    form.style.display = 'none';
+                    successMessage.innerHTML = "¡Gracias! Tu mensaje ha sido enviado.<br>Nos pondremos en contacto contigo pronto.";
+                    successMessage.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error al enviar el formulario:', error);
+                    successMessage.textContent = 'Hubo un error al enviar tu mensaje. Por favor, inténtalo de nuevo.';
+                    successMessage.style.display = 'block';
+                    successMessage.style.color = 'var(--error-red)';
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'ENVIAR MENSAJE';
+                });
+            }
+        });
+        
+        function validateForm() {
+            let isValid = true;
+            document.querySelectorAll('.form-group .error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-group input, .form-group textarea').forEach(el => el.classList.remove('has-error'));
+            
+            const fullName = document.getElementById('fullName');
+            const email = document.getElementById('email');
+            const phone = document.getElementById('phone');
+            const message = document.getElementById('message');
+
+            if (fullName.value.trim() === '') { isValid = false; showError(fullName, 'Este campo es obligatorio.'); }
+            if (email.value.trim() === '') { isValid = false; showError(email, 'Este campo es obligatorio.'); } 
+            else if (!isValidEmail(email.value)) { isValid = false; showError(email, 'Por favor, introduce un email válido.'); }
+            if (phone.value.trim() === '') { isValid = false; showError(phone, 'Este campo es obligatorio.'); }
+            if (message.value.trim() === '') { isValid = false; showError(message, 'Por favor, escribe un mensaje.'); }
+            
+            return isValid;
+        }
+
+        function showError(inputElement, message) {
+            inputElement.classList.add('has-error');
+            const errorElement = inputElement.nextElementSibling;
+            if (errorElement && errorElement.classList.contains('error-message')) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function isValidEmail(email) {
+            const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return regex.test(String(email).toLowerCase());
+        }
+    </script>
+</body>
+</html>
